@@ -1,23 +1,34 @@
 <?php
-require('config.php');
+require('config/config.php');
 
 $message = "";
 
+// Check if the form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hashing the password
 
-    $sql = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
-    
-    if (mysqli_query($conn, $sql)) {
-        echo "Signup successful!";
+    // Optional: Add confirmation password check
+    if ($_POST['password'] !== $_POST['confirm_password']) {
+        $message = "Passwords do not match!";
     } else {
-        echo "Error: " . mysqli_error($conn);
+        $sql = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+        
+        if (mysqli_query($conn, $sql)) {
+            // Redirect to login page after 2 seconds
+            echo "<script>
+                    setTimeout(function() {
+                        window.location.href = 'login.php';
+                    }, 5000);
+                  </script>";
+            $message = "Signup successful! Redirecting to login page... <img src='assets/loading.gif' alt='Loading...' />";
+        } else {
+            $message = "Error: " . mysqli_error($conn);
+        }
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -41,8 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </header>
 
     <section class="form-container">
-        <form action="signup_process.php" method="post" class="form">
+        <form action="" method="post" class="form"> <!-- Action is empty to submit to the same file -->
             <h2>Create Your Account</h2>
+            <?php if ($message) echo "<p>$message</p>"; ?> <!-- Displaying messages -->
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
@@ -69,4 +81,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </footer>
 </body>
 </html>
-
