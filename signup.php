@@ -24,35 +24,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
-    <link rel="stylesheet" href="assets/css/login-signup.css">
+    <title>Sign Up - Turf Booking</title>
+    <link rel="stylesheet" href="assets/css/style.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/common.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/login-signup.css?v=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
     <header>
-        <h1>Create Your Account</h1>
+        <div class="container">
+            <h1 class="logo">Turf Booking</h1>
+            <nav>
+                <a href="login.php">Login</a>
+            </nav>
+        </div>
     </header>
 
-    <section>
-        <form action="signup.php" method="POST">
-            <label for="username">Username:</label>
-            <input type="text" name="username" required>
-            
-            <label for="email">Email:</label>
-            <input type="email" name="email" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" name="password" required>
-            
-            <button type="submit">Sign Up</button>
+    <section class="form-container">
+        <form action="signup_process.php" method="post" class="form">
+            <h2>Create Your Account</h2>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="cta-button">Sign Up</button>
+            <p>Already have an account? <a href="login.php">Login here</a></p>
         </form>
     </section>
 
-    <?php if ($message): ?>
-        <div class="message"><?php echo $message; ?></div>
-    <?php endif; ?>
-
+    <footer>
+        <p>&copy; 2024 Turf Booking. All rights reserved.</p>
+    </footer>
 </body>
 </html>
 

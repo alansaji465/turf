@@ -24,24 +24,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="assets/css/login-signup.css">
+    <title>Login - Turf Booking</title>
+    <link rel="stylesheet" href="assets/css/style.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/common.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/login-signup.css?v=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1>Login to Turf Booking</h1>
+        <div class="container">
+            <h1 class="logo">Turf Booking</h1>
+            <nav>
+                <a href="signup.php" class="signup-btn">Sign Up</a>
+            </nav>
+        </div>
     </header>
 
-    <section>
-        <form action="login.php" method="POST">
-            <label for="email">Email:</label>
-            <input type="email" name="email" required>
-            <br>
-            <label for="password">Password:</label>
-            <input type="password" name="password" required>
-            <br>
-            <button type="submit">Login</button>
+    <section class="form-container">
+        <form action="login_process.php" method="post" class="form">
+            <h2>Login to Your Account</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="cta-button">Login</button>
+            <p>Don't have an account? <a href="signup.php">Sign up here</a></p>
         </form>
     </section>
+
+    <footer>
+        <p>&copy; 2024 Turf Booking. All rights reserved.</p>
+    </footer>
 </body>
 </html>
+
