@@ -8,13 +8,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Fetch user from the database
-    $sql = "SELECT * FROM users WHERE email='$email'";
-    $result = mysqli_query($conn, $sql);
+    // Prepared statement to prevent SQL injection
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email); // "s" specifies the type (string)
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     // Check if the user exists
-    if (mysqli_num_rows($result) > 0) {
-        $user = mysqli_fetch_assoc($result);
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
 
         // Verify the password
         if (password_verify($password, $user['password'])) {
@@ -27,8 +29,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $message = "Invalid login credentials!"; // Invalid email
     }
+    
+    // Close the statement
+    $stmt->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
