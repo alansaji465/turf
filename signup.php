@@ -20,9 +20,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<script>
                     setTimeout(function() {
                         window.location.href = 'login.php';
-                    }, 5000);
+                    }, 3000);
                   </script>";
-            $message = "Signup successful! Redirecting to login page... <img src='assets/loading.gif' alt='Loading...' />";
+            $message = "Signup successful! Redirecting to login page... <img src='assets/loading.gif' />";
         } else {
             $message = "Error: " . mysqli_error($conn);
         }

@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turf Booking</title>
-    <link rel="stylesheet" href="assets/css/style.css?v=1.0">
-    <link rel="stylesheet" href="assets/css/common.css?v=1.0">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.1">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
