@@ -1,8 +1,8 @@
 <?php
-// Connect to database
+// Connect to the database
 include_once("config/config.php");
 
-// Get TurfID from URL parameter
+// Ensure TurfID is set and sanitized
 if (isset($_GET['TurfID'])) {
     $TurfID = intval($_GET['TurfID']);  // Convert to integer for security
 
@@ -21,59 +21,100 @@ if (isset($_GET['TurfID'])) {
         header("Location: dashboard.php");
         exit();
     }
-} else {
-    // Redirect to dashboard if TurfID is not set
-    header("Location: dashboard.php");
-    exit();
-}
 
-$image1 = $turfDetails['image'];
-$image2 = $turfDetails['image_2'];
+    // Query the database for time slots
+    $slotQuery = "SELECT slot_start, slot_end, is_available FROM time_slots WHERE turf_id = ?";
+    $stmt = $conn->prepare($slotQuery);
+    $stmt->bind_param("i", $TurfID);
+    $stmt->execute();
+    $slotResult = $stmt->get_result();
 
-$slotsQuery = "SELECT * FROM time_slots";
-$slotsResult = $conn->query($slotsQuery);
-
-// Check if there are any slots available
-$slots = [];
-if ($slotsResult->num_rows > 0) {
-    while ($row = $slotsResult->fetch_assoc()) {
-        $slots[] = $row; // Store slot details in an array
+    if ($slotResult->num_rows > 0) {
+        // Loop through and display available time slots
+        while ($row = $slotResult->fetch_assoc()) {
+            echo "Slot Start: " . $row['slot_start'] . " - Slot End: " . $row['slot_end'] . " - Available: " . ($row['is_available'] ? 'Yes' : 'No') . "<br>";
+        }
+    } else {
+        echo "No available time slots for this turf.";
     }
+
+} else {
+    // If TurfID is not set, handle accordingly (e.g., redirect or show a message)
+    echo "TurfID parameter is missing.";
 }
 
-// Query the database for already booked slots on the selected turf
-$bookedQuery = "SELECT b.id, b.booking_date, ts.slot_start, ts.slot_end 
-                FROM bookings b
-                JOIN time_slots ts ON b.time_slot_id = ts.id
-                WHERE b.turf_id = ? AND b.booking_date = ?";
+    
+    // Fetch images associated with the turf
+    $image1 = $turfDetails['image'];
+    $image2 = $turfDetails['image_2'];
 
+    
+    // Query the database for available slots for the selected turf
+    $slotsQuery = "SELECT * FROM time_slots WHERE turf_id = ?";
+    $stmt = $conn->prepare($slotsQuery);
+    $stmt->bind_param("i", $TurfID);
+    $stmt->execute();
+    $slotsResult = $stmt->get_result();
 
-$stmt = $conn->prepare($bookedQuery);
-$stmt->bind_param("is", $turfID, $selectedDate);  // Bind turf ID and date
-$stmt->execute();
-$bookedResult = $stmt->get_result();
+    // Store available slots in an array
+    $slots = [];
+    if ($slotsResult->num_rows > 0) {
+        while ($row = $slotsResult->fetch_assoc()) {
+            $slots[] = $row; // Store slot details in an array
+        }
+    }
 
-// Store booked time slots in an array
-$bookedSlots = [];
-while ($bookedRow = $bookedResult->fetch_assoc()) {
-    $bookedSlots[] = $bookedRow['booking_time'];  // Store the booked times
-}
+    // Query the database for already booked slots on the selected turf and date
+    $bookedQuery = "SELECT b.id, b.booking_date, ts.slot_start, ts.slot_end 
+                    FROM bookings b
+                    JOIN time_slots ts ON b.time_slot_id = ts.id
+                    WHERE b.turf_id = ? AND b.booking_date = ?";
+    $selectedDate = date('Y-m-d');  // Example for the current date, modify as needed
+    $stmt = $conn->prepare($bookedQuery);
+    $stmt->bind_param("is", $TurfID, $selectedDate);  // Bind turf ID and date
+    $stmt->execute();
+    $bookedResult = $stmt->get_result();
 
-// Function to check if a slot is booked
-function isSlotBooked($slotTime, $bookedSlots) {
-    return in_array($slotTime, $bookedSlots); // Returns true if slot is booked
-}
+    // Store booked time slots in an array
+    $bookedSlots = [];
+    while ($bookedRow = $bookedResult->fetch_assoc()) {
+        // Storing the booked slots for comparison
+        $bookedSlots[] = ['slot_start' => $bookedRow['slot_start'], 'slot_end' => $bookedRow['slot_end']];
+    }
 
-// Function to format the slot times as "5 AM to 6 AM"
-function formatSlotTime($slotTime, $duration) {
-    // Get the start time in 12-hour format
-    $startTime = date('g A', strtotime($slotTime)); // e.g., "5 AM"
-    // Calculate the end time by adding the duration
-    $endTime = date('g A', strtotime($slotTime) + ($duration * 60)); // e.g., "6 AM"
-    return $startTime . " to " . $endTime; // e.g., "5 AM to 6 AM"
-}
+    // Function to check if a selected slot is booked (compare time ranges)
+    function isSlotBooked($selectedSlotStart, $selectedSlotEnd, $bookedSlots) {
+        foreach ($bookedSlots as $bookedSlot) {
+            // Check if the selected slot overlaps with any booked slot
+            if (($selectedSlotStart >= $bookedSlot['slot_start'] && $selectedSlotStart < $bookedSlot['slot_end']) || 
+                ($selectedSlotEnd > $bookedSlot['slot_start'] && $selectedSlotEnd <= $bookedSlot['slot_end'])) {
+                return true; // Slot is booked
+            }
+        }
+        return false; // Slot is not booked
+    }
 
+    // Function to format the slot times as "5 AM to 6 AM"
+    function formatSlotTime($slotTime, $duration) {
+        // Get the start time in 12-hour format
+        $startTime = date('g A', strtotime($slotTime)); // e.g., "5 AM"
+        // Calculate the end time by adding the duration
+        $endTime = date('g A', strtotime($slotTime) + ($duration * 60)); // e.g., "6 AM"
+        return $startTime . " to " . $endTime; // e.g., "5 AM to 6 AM"
+    }
+
+    // Example: Check for a specific slot availability
+    $selectedSlotStart = '10:00'; // Selected start time (from user input)
+    $selectedSlotEnd = '11:00';   // Selected end time (from user input)
+
+    if (isSlotBooked($selectedSlotStart, $selectedSlotEnd, $bookedSlots)) {
+        echo "Sorry, this time slot is already booked.";
+    } else {
+        echo "This time slot is available for booking!";
+    }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +130,6 @@ function formatSlotTime($slotTime, $duration) {
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 </head>
 <body>
 
@@ -137,7 +177,7 @@ function formatSlotTime($slotTime, $duration) {
                     </div>
                     <div class="card">
                         <h5 class="card-title">Available Slots</h5>
-                        <p class="card-text">5 AM - 12 AM</p> <!-- Fixed time range display -->
+                        <p class="card-text">5 AM - 12 AM</p>
                     </div>
                     <div class="card">
                         <h5 class="card-title">Amenities</h5>
@@ -157,14 +197,12 @@ function formatSlotTime($slotTime, $duration) {
             <div class="col-lg-6">
                 <h3 class="section-title">Select Date</h3>
                 <div class="calendar-view">
-                    <!-- Display Calendar Grid -->
                     <div class="calendar-container">
                         <div class="calendar-header">
                             <button id="prevMonth" class="btn btn-secondary">&lt;</button>
                             <span id="calendarMonth" class="calendar-month"></span>
                             <button id="nextMonth" class="btn btn-secondary">&gt;</button>
                         </div>
-                        <!-- Calendar Div (This will be populated dynamically) -->
                         <div id="calendar" class="calendar"></div>
                     </div>
                 </div>
@@ -178,10 +216,8 @@ function formatSlotTime($slotTime, $duration) {
                 <h3 class="section-title">Available Slots</h3>
                 <div class="time-slot-grid">
                     <?php
-                    // Display time slots from the database
                     foreach ($slots as $slot) {
                         $formattedSlot = formatSlotTime($slot['slot_time'], $slot['duration']);
-                        // Check if the slot is booked
                         if (!isSlotBooked($slot['slot_time'], $bookedSlots)) {
                             echo "<div class='time-slot available' data-slot='" . htmlspecialchars($slot['slot_time']) . "'>" . htmlspecialchars($formattedSlot) . "</div>";
                         } else {
@@ -196,127 +232,67 @@ function formatSlotTime($slotTime, $duration) {
 
     <!-- Submit Button -->
     <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-success btn-lg" style="margin-top: 20px">Book Now</button>
+        <button type="submit" class="btn btn-success btn-lg">Book Now</button>
     </div>
 </section>
 
-<!-- Hidden Input for Time Slot (Updated) -->
-<input type="hidden" name="time_slot">
-
-
+<!-- Scripts -->
 <script>
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
+$(document).ready(function() {
+    // Calendar interaction
+    const currentDate = new Date();
+    let selectedDate = currentDate.toISOString().split("T")[0];
 
-    const months = [
-        "January", "February", "March", "April", "May", "June", 
-        "July", "August", "September", "October", "November", "December"
-    ];
+    function renderCalendar() {
+        const calendar = $("#calendar");
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const currentMonth = currentDate.getMonth();
+        const currentYear = currentDate.getFullYear();
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const firstWeekday = firstDay.getDay();
+        const lastDate = lastDay.getDate();
 
-    function generateCalendar(month, year) {
-        const calendar = document.getElementById("calendar");
-        calendar.innerHTML = "";
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const firstDay = new Date(year, month).getDay();
-        const currentDate = new Date().getDate();
+        let day = 1;
+        let html = "<table class='table'>";
+        html += "<thead><tr>";
+        for (let i = 0; i < 7; i++) {
+            html += "<th>" + ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i] + "</th>";
+        }
+        html += "</tr></thead><tbody><tr>";
 
-        // Display month and year
-        document.getElementById("calendarMonth").textContent = months[month] + " " + year;
-
-        // Create day headers (Sun, Mon, Tue, etc.)
-        const header = document.createElement("div");
-        header.classList.add("calendar-header-row");
-        ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(day => {
-            const dayHeader = document.createElement("span");
-            dayHeader.classList.add("calendar-day-header");
-            dayHeader.textContent = day;
-            header.appendChild(dayHeader);
-        });
-        calendar.appendChild(header);
-
-        // Create calendar days
-        const daysRow = document.createElement("div");
-        daysRow.classList.add("calendar-days-row");
-
-        // Add empty cells before the first day of the month
-        for (let i = 0; i < firstDay; i++) {
-            daysRow.appendChild(document.createElement("span"));
+        // Empty cells before the first day of the month
+        for (let i = 0; i < firstWeekday; i++) {
+            html += "<td></td>";
         }
 
-        // Add days of the month
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dayCell = document.createElement("span");
-            dayCell.classList.add("calendar-day");
-            dayCell.textContent = i;
-
-            if (i === currentDate && month === new Date().getMonth() && year === new Date().getFullYear()) {
-                dayCell.classList.add("current-day");
+        // Render the days of the month
+        for (let i = firstWeekday; i < 7; i++) {
+            if (day <= lastDate) {
+                html += `<td><button class="btn btn-calendar" data-date="${currentYear}-${currentMonth + 1}-${day}">${day}</button></td>`;
+                day++;
             }
-
-            // Select day on click
-            dayCell.addEventListener("click", function() {
-                const selectedDate = `${year}-${month + 1}-${i}`;
-                document.getElementById("date").value = selectedDate;
-                updateAvailableSlots(selectedDate);  // Update available time slots for the selected date
-            });
-
-            daysRow.appendChild(dayCell);
         }
 
-        calendar.appendChild(daysRow);
+        html += "</tr></tbody></table>";
+        calendar.html(html);
+        $("#calendarMonth").text(monthNames[currentMonth] + " " + currentYear);
     }
 
-    // Navigate to previous and next months
-    document.getElementById("prevMonth").addEventListener("click", function() {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        }
-        generateCalendar(currentMonth, currentYear);
+    renderCalendar();
+
+    // Date selection handler
+    $("#calendar").on("click", ".btn-calendar", function() {
+        selectedDate = $(this).data("date");
+        $("#date").val(selectedDate); // Update the hidden input value
     });
 
-    document.getElementById("nextMonth").addEventListener("click", function() {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        generateCalendar(currentMonth, currentYear);
+    // Time slot selection
+    $(".time-slot").on("click", function() {
+        const slotTime = $(this).data("slot");
+        console.log("Selected Slot:", slotTime);
     });
-
-    // Initialize calendar
-    generateCalendar(currentMonth, currentYear);
-
-    function updateAvailableSlots(selectedDate) {
-        $.ajax({
-            url: "getBookedSlots.php",
-            method: "POST",
-            data: { selectedDate: selectedDate },
-            success: function(response) {
-                const bookedSlots = JSON.parse(response);
-                document.querySelectorAll('.time-slot').forEach(function(slot) {
-                    const slotTime = slot.getAttribute('data-slot');
-                    if (bookedSlots.includes(slotTime)) {
-                        slot.classList.add('booked');
-                        slot.classList.remove('available');
-                    } else {
-                        slot.classList.add('available');
-                        slot.classList.remove('booked');
-                    }
-                });
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Bind the click events for available time slots after DOM is loaded
-        document.querySelectorAll('.time-slot.available').forEach(function(slot) {
-            slot.addEventListener('click', function() {
-                document.querySelector('input[name="time_slot"]').value = this.getAttribute('data-slot');
-            });
-        });
-    });
+});
 </script>
 
 </body>
