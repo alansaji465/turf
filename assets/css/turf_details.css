@@ -1,0 +1,214 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+/* Turf Info Section */
+.turf-info {
+    padding: 28px 0;
+    margin-bottom: -18px;
+}
+
+.turf-info .carousel-inner img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.info-cards .card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.info-cards .card-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.info-cards .card-text {
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+/* Booking Form Section */
+.booking-form {
+    padding: 40px 0;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.booking-form .section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.booking-form .form-group label {
+    font-weight: 600;
+}
+
+.booking-form .form-control {
+    font-size: 1rem;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.booking-form .btn {
+    background-color: #117215;
+    border: none;
+    font-size: 1.2rem;
+    padding: 15px 30px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.booking-form .btn:hover {
+    background-color: #06560a;
+}
+
+/* Calendar View */
+.calendar-view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);  /* 7 columns for the days of the week */
+    gap: 10px;
+    width: 100%;
+}
+
+.calendar-container {
+    display: inline-block;
+    width: 100%;
+    padding: 10px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.calendar-month {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.calendar-day-header {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+    margin-right: 46px;
+}
+
+.calendar-days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-gap: 5px;
+}
+
+.calendar-day {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+}
+
+/* Hover effect for calendar days */
+.calendar-day:hover {
+    background-color: #f0f0f0;
+}
+
+.calendar-day {
+    pointer-events: auto; /* Ensure the element can be clicked */
+}
+.current-day {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.calendar-day.selected {
+    background-color: #FF9800;
+    color: white;
+}
+
+.calendar-day:active {
+    background-color: #0D9B6E;
+    color: white;
+}
+
+/* Grid Layout for Time Slots */
+.time-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  /* 4 columns */
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* Individual Time Slot Styles */
+.time-slot {
+    padding: 10px;
+    background-color: #f0f0f0;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+}
+
+/* Available Slot */
+.time-slot.available {
+    background-color: #d4f7dc;
+}
+
+/* Booked Slot */
+.time-slot.booked {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Hover effect for available slots */
+.time-slot:hover {
+    background-color: #117215;
+    color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .time-slot-grid {
+        grid-template-columns: repeat(2, 1fr);  /* For smaller screens, 2 columns */
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+
+    .hero-location {
+        font-size: 1rem;
+    }
+}
+
+/* Miscellaneous */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
